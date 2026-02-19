@@ -1,5 +1,7 @@
 use crate::elements::neutron::*;
 use macroquad::prelude::*;
+
+#[derive(Clone)]
 pub struct ControlRod {
     pub control_rod: Rect,
 }

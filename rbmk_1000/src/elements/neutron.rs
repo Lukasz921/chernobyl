@@ -19,6 +19,7 @@ impl Neutron {
     }
     pub fn make_thermal(&mut self, velocity_left_percent: f32) {
         if self.is_not_thermal() {
+            self.thermal = true;
             self.direction.x = self.direction.x * velocity_left_percent;
             self.direction.y = self.direction.y * velocity_left_percent;
         }
@@ -33,9 +34,8 @@ impl Neutron {
         self.position.x += self.direction.x;
         self.position.y += self.direction.y;
     }
-    pub fn check_if_gone(&self) -> bool {
-        self.position.x < 0.0 || self.position.y < 0.0 || screen_width() < self.position.x
-        || screen_height() < self.position.y
+    pub fn check_if_gone(&mut self) -> bool {
+        self.position.x < 0.0 || screen_width() < self.position.x || self.position.y < 0.0 || screen_height() < self.position.y
     }
     pub fn draw(&self, neutron_radius: f32) {
         if self.is_thermal() {

@@ -20,6 +20,11 @@ impl Waste {
         }
         None
     }
+    pub fn try_turn_to_uranium(&self, probability: f64) -> bool {
+        let mut rng: ThreadRng = ::rand::thread_rng();
+        let is_turned: bool = rng.gen_bool(probability);
+        is_turned
+    }
     pub fn draw(&self) {
         draw_circle(self.waste_elements.x, self.waste_elements.y, self.waste_elements.r, LIGHTGRAY);
     }
