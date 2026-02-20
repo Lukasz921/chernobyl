@@ -33,14 +33,15 @@ async fn main() {
     let cool_down_frames: Vec<usize> = vec![5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60];
     let try_turn_to_uranium_frames: Vec<usize> = vec![60];
     let mut frame_number: usize = 0;
-    let mut automated: bool = false;
-    let mut is_spontaneous_neutron_throw_enabled: bool = false;
+    let mut automated: bool = true;
+    let mut is_spontaneous_neutron_throw_enabled: bool = true;
     let mut is_az5_enabled: bool = false;
+    let mut is_refractor_enabled: bool = false;
     loop {
         clear_background(WHITE);
         reactor.window_size_changed();
         reactor.draw(SKYBLUE, RED, NEUTRON_RADIUS);
-        reactor.run_neutrons_simulation(TOTAL_VELOCITY, VELOCITY_LEFT_PERCENT, NEUTRON_MULTIPLYER, PROBABILITY_WATER, PROBABILITY_XENON);
+        reactor.run_neutrons_simulation(TOTAL_VELOCITY, VELOCITY_LEFT_PERCENT, NEUTRON_MULTIPLYER, PROBABILITY_WATER, PROBABILITY_XENON, is_refractor_enabled);
         reactor.time_events(SPONTANEOUS_NEUTRON_THROW_PROBABILITY, TURNING_TO_URANIUM_PROBABILITY, TOTAL_VELOCITY, frame_number, &spontaneous_neutron_throw_frames,
         &cool_down_frames, &try_turn_to_uranium_frames, is_spontaneous_neutron_throw_enabled);
         frame_number += 1;
@@ -57,6 +58,9 @@ async fn main() {
         }
         if is_key_pressed(KeyCode::Enter) {
             is_az5_enabled = !is_az5_enabled;
+        }
+        if is_key_pressed(KeyCode::R) {
+            is_refractor_enabled = !is_refractor_enabled;
         }
         if automated { reactor.automated_control_rods(AUTOMATED_LOW_LIMIT, AUTOMATED_HIGH_LIMIT); }
         if is_az5_enabled { reactor.az_5(); }

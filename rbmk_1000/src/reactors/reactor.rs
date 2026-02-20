@@ -18,14 +18,18 @@ impl Reactor {
         let neutrons: Vec<Neutron> = Vec::new(); 
         Reactor { core, neutrons }
     }
-    pub fn run_neutrons_simulation(&mut self, total_velocity: f32, velocity_left_percent: f32, neutron_multiplyer: usize, probability_water: f64, probability_xenon: f64) {
+    pub fn run_neutrons_simulation(&mut self, total_velocity: f32, velocity_left_percent: f32, neutron_multiplyer: usize, probability_water: f64, probability_xenon: f64, 
+    is_refractor_enabled: bool) {
         let mut neutrons_idx_to_delete: Vec<usize> = Vec::new();
         let mut neutrons_to_add: Vec<Neutron> = Vec::new();
         let mut possible_xenon_releases: Vec<(usize, usize)> = Vec::new();
         let mut xenon_strikes: Vec<(usize, usize)> = Vec::new();
         'mainlabel: for neutron_tuple in &mut self.neutrons.iter_mut().enumerate() {
             neutron_tuple.1.run();
-            if neutron_tuple.1.check_if_gone() {
+            if is_refractor_enabled {
+                neutron_tuple.1.reflect();
+            }
+            else if neutron_tuple.1.check_if_gone() {
                 neutrons_idx_to_delete.push(neutron_tuple.0);
                 continue;
             }

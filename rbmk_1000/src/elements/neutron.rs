@@ -37,6 +37,14 @@ impl Neutron {
     pub fn check_if_gone(&mut self) -> bool {
         self.position.x < 0.0 || screen_width() < self.position.x || self.position.y < 0.0 || screen_height() < self.position.y
     }
+    pub fn reflect(&mut self) {
+        if self.position.x < 0.0 || screen_width() < self.position.x {
+            self.direction.x = -self.direction.x;
+        }
+        if self.position.y < 0.0 || screen_height() < self.position.y {
+            self.direction.y = -self.direction.y;
+        }
+    }
     pub fn draw(&self, neutron_radius: f32) {
         if self.is_thermal() {
             draw_circle(self.position.x, self.position.y, neutron_radius, BLACK);
