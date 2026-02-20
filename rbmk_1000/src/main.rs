@@ -1,3 +1,4 @@
+use macroquad::audio::{load_sound, Sound};
 use rbmk_1000::reactors::reactor::*;
 use macroquad::prelude::*;
 
@@ -25,8 +26,13 @@ const TURNING_TO_URANIUM_PROBABILITY: f64 = 0.05;
 const AUTOMATED_LOW_LIMIT: usize = 150;
 const AUTOMATED_HIGH_LIMIT: usize = 250;
 
+const POWER_PER_NEUTRON: f32 = 12.8; // 3200/250
+const RMBK_MAX_POWER: f32 = 3200.0;
+const CRITICAL_POWER: f32 = 4000.0;
+
 #[macroquad::main("RBMK-1000")]
 async fn main() {
+    let sound: Sound = load_sound("assets/reaction.ogg").await.unwrap();
     let mut reactor: Reactor = Reactor::new(FUEL_CHANNELS_COUNT, ELEMENTS_PER_CHANNEL, FUEL_CHANNEL_HEIGHT, ELEMENT_RADIUS,
     FUEL_PROBABILITY, WATER_SIZE, MIN_TEMPERATURE, MAX_TEMPERATURE, BOILING_TEMPERATURE, ROD_THICK);
     let spontaneous_neutron_throw_frames: Vec<usize> = vec![60];
@@ -41,7 +47,7 @@ async fn main() {
         clear_background(WHITE);
         reactor.window_size_changed();
         reactor.draw(SKYBLUE, RED, NEUTRON_RADIUS);
-        reactor.run_neutrons_simulation(TOTAL_VELOCITY, VELOCITY_LEFT_PERCENT, NEUTRON_MULTIPLYER, PROBABILITY_WATER, PROBABILITY_XENON, is_refractor_enabled);
+        reactor.run_neutrons_simulation(TOTAL_VELOCITY, VELOCITY_LEFT_PERCENT, NEUTRON_MULTIPLYER, PROBABILITY_WATER, PROBABILITY_XENON, is_refractor_enabled, &sound);
         reactor.time_events(SPONTANEOUS_NEUTRON_THROW_PROBABILITY, TURNING_TO_URANIUM_PROBABILITY, TOTAL_VELOCITY, frame_number, &spontaneous_neutron_throw_frames,
         &cool_down_frames, &try_turn_to_uranium_frames, is_spontaneous_neutron_throw_enabled);
         frame_number += 1;
@@ -65,12 +71,24 @@ async fn main() {
         if automated { reactor.automated_control_rods(AUTOMATED_LOW_LIMIT, AUTOMATED_HIGH_LIMIT); }
         if is_az5_enabled { reactor.az_5(); }
 
-        let neutrons_text: String = format!("NEUTRONY: {}", reactor.neutrons.len());
-        let rods_text: String = format!("PRETY KONTROLNE: {:.1}%", reactor.core.control_rods_percent * 100.0);
-        let center_x: f32 = screen_width() / 2.0;
-        draw_text(&neutrons_text, center_x - 100.0, 30.0, 35.0, BLACK);
-        draw_text(&rods_text, center_x - 140.0, 65.0, 25.0, BLACK);
-
+        let power_mw: f32 = reactor.neutrons.len() as f32 * POWER_PER_NEUTRON;
+        let neutrons_text: String = format!("NEUTRONS: {}", reactor.neutrons.len());
+        let rods_text: String = format!("CONTROL RODS: {:.1}%", reactor.core.control_rods_percent * 100.0);
+        let power_text: String = format!("THERMAL POWER: {:.0} MW", power_mw);
+        let power_color = if power_mw > CRITICAL_POWER {
+            RED
+        } else if power_mw > RMBK_MAX_POWER {
+            ORANGE
+        } else {
+            DARKGREEN
+        };
+        let font_size = 25.0;
+        let y_pos = 20.0;
+        draw_text(&neutrons_text, 20.0, y_pos, font_size, BLACK);
+        let rods_text_width = measure_text(&rods_text, None, font_size as u16, 1.0).width;
+        draw_text(&rods_text, (screen_width() - rods_text_width) / 2.0, y_pos, font_size, BLACK);
+        let power_text_width = measure_text(&power_text, None, font_size as u16, 1.0).width;
+        draw_text(&power_text, screen_width() - power_text_width - 20.0, y_pos, font_size, power_color);
         next_frame().await;
     }
 }

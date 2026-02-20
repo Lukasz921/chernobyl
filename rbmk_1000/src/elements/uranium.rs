@@ -1,3 +1,4 @@
+use macroquad::audio::{play_sound_once, Sound};
 use crate::elements::neutron::*;
 use macroquad::prelude::*;
 use ::rand::prelude::*;
@@ -9,7 +10,7 @@ impl Uranium {
         let uranium_element: Circle = Circle::new(uranium_position.x, uranium_position.y, uranium_radius);
         Uranium { uranium_element }
     }
-    pub fn try_fission(&self, neutron: &Neutron, total_velocity: f32, neutron_multiplyer: usize)
+    pub fn try_fission(&self, neutron: &Neutron, total_velocity: f32, neutron_multiplyer: usize, sound: &Sound)
     -> Option<Vec<Neutron>> {
         if neutron.is_thermal() && self.uranium_element.contains(&neutron.position) {
             let uranium_position: Vec2 = Vec2::new(self.uranium_element.x, self.uranium_element.y);
@@ -17,7 +18,8 @@ impl Uranium {
             let mut new_neutron_vec: Vec<Neutron> = Vec::new();
             for _ in 0..neutron_multiplyer {
                 new_neutron_vec.push(Neutron::new_with_move(uranium_position, uranium_radius, total_velocity));
-            }            
+            }
+            play_sound_once(sound);    
             return Some(new_neutron_vec);
         }
         None

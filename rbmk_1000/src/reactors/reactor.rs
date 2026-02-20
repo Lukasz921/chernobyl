@@ -4,6 +4,7 @@ use crate::elements::fuel::*;
 use crate::elements::uranium::*;
 use crate::elements::xenon::*;
 use crate::elements::waste::*;
+use macroquad::audio::Sound;
 use macroquad::prelude::*;
 pub struct Reactor {
     pub core: Core,
@@ -19,7 +20,7 @@ impl Reactor {
         Reactor { core, neutrons }
     }
     pub fn run_neutrons_simulation(&mut self, total_velocity: f32, velocity_left_percent: f32, neutron_multiplyer: usize, probability_water: f64, probability_xenon: f64, 
-    is_refractor_enabled: bool) {
+    is_refractor_enabled: bool, sound: &Sound) {
         let mut neutrons_idx_to_delete: Vec<usize> = Vec::new();
         let mut neutrons_to_add: Vec<Neutron> = Vec::new();
         let mut possible_xenon_releases: Vec<(usize, usize)> = Vec::new();
@@ -48,7 +49,7 @@ impl Reactor {
                 for element in element_row.1.iter().enumerate() {
                     match element.1 {
                         Fuel::Uranium(uranium) => {
-                            let new_possible_neutrons: Option<Vec<Neutron>> = uranium.try_fission(neutron_tuple.1, total_velocity, neutron_multiplyer);
+                            let new_possible_neutrons: Option<Vec<Neutron>> = uranium.try_fission(neutron_tuple.1, total_velocity, neutron_multiplyer, sound);
                             if let Some(mut new_neutrons) = new_possible_neutrons {
                                 neutrons_to_add.append(&mut new_neutrons);
                                 neutrons_idx_to_delete.push(neutron_tuple.0);
@@ -179,6 +180,16 @@ impl Reactor {
         else if upper_limit < self.neutrons.len() {
             self.core.control_rods_percent += 0.001;
             if 1.0 < self.core.control_rods_percent { self.core.control_rods_percent = 1.0 }
+        }
+        if lower_limit < self.neutrons.len() && self.neutrons.len() < upper_limit {
+            if self.neutrons.len() - lower_limit < upper_limit - self.neutrons.len() {
+                self.core.control_rods_percent -= 0.0001;
+                if self.core.control_rods_percent < 0.0 { self.core.control_rods_percent = 0.0 }
+            }
+            else {
+                self.core.control_rods_percent += 0.0001;
+                if 1.0 < self.core.control_rods_percent { self.core.control_rods_percent = 1.0 }
+            }
         }
     }
     pub fn az_5(&mut self) {
